@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 30% 97%;
+    --foreground: 20 25% 12%;
+
+    --card: 30 25% 99%;
+    --card-foreground: 20 25% 12%;
+
+    --popover: 30 25% 99%;
+    --popover-foreground: 20 25% 12%;
+
+    --primary: 4 85% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 35 90% 52%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 30 15% 93%;
+    --muted-foreground: 20 10% 45%;
+
+    --accent: 145 55% 42%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 15% 88%;
+    --input: 30 15% 88%;
+    --ring: 4 85% 55%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 20 20% 8%;
+    --sidebar-foreground: 30 15% 93%;
+    --sidebar-primary: 4 85% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 20 15% 15%;
+    --sidebar-accent-foreground: 30 15% 93%;
+    --sidebar-border: 20 10% 18%;
+    --sidebar-ring: 4 85% 55%;
+
+    /* Custom tokens */
+    --warning: 35 90% 52%;
+    --warning-foreground: 0 0% 100%;
+    --success: 145 55% 42%;
+    --success-foreground: 0 0% 100%;
+    --surface-warm: 30 30% 95%;
+    --hero-gradient: linear-gradient(135deg, hsl(4 85% 55%), hsl(35 90% 52%));
+    --card-shadow: 0 2px 12px -2px hsl(20 25% 12% / 0.08);
+    --card-shadow-hover: 0 8px 24px -4px hsl(20 25% 12% / 0.12);
+  }
+
+  .dark {
+    --background: 20 20% 8%;
+    --foreground: 30 15% 93%;
+    --card: 20 18% 12%;
+    --card-foreground: 30 15% 93%;
+    --popover: 20 18% 12%;
+    --popover-foreground: 30 15% 93%;
+    --primary: 4 85% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 35 85% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 20 12% 18%;
+    --muted-foreground: 30 10% 55%;
+    --accent: 145 50% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 12% 20%;
+    --input: 20 12% 20%;
+    --ring: 4 85% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+}
+
+@layer utilities {
+  .gradient-primary {
+    background: var(--hero-gradient);
+  }
+
+  .shadow-card {
+    box-shadow: var(--card-shadow);
+  }
+
+  .shadow-card-hover {
+    box-shadow: var(--card-shadow-hover);
+  }
+
+  .text-gradient {
+    background: var(--hero-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}

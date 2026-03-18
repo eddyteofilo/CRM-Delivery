@@ -51,12 +51,14 @@ export default function DeliveryMap({ orderNumber, customerAddress, status }: De
     );
   }
 
-  // Fallback: Mapa Simulado em SVG (Mantendo a UI original caso falte a Chave)
+  // Fallback: Mapa Simulado em SVG
+  return (
+    <div className="relative w-full aspect-video bg-muted rounded-2xl overflow-hidden border shadow-inner">
       <div className="absolute inset-0 opacity-20" 
            style={{ backgroundImage: 'radial-gradient(#000 0.5px, transparent 0.5px)', backgroundSize: '20px 20px' }} 
       />
       
-      {/* Map Roads (Simplified SVG) */}
+      {/* Map Roads */}
       <svg className="absolute inset-0 w-full h-full text-muted-foreground/30" viewBox="0 0 400 200">
         <path d="M0,100 Q100,80 200,100 T400,100" fill="none" stroke="currentColor" strokeWidth="4" strokeDasharray="8 4" />
         <path d="M100,0 L100,200" fill="none" stroke="currentColor" strokeWidth="2" strokeOpacity="0.5" />
@@ -68,10 +70,10 @@ export default function DeliveryMap({ orderNumber, customerAddress, status }: De
         <div className="bg-primary text-primary-foreground p-2 rounded-full shadow-lg z-10">
           <Pizza className="h-5 w-5" />
         </div>
-        <span className="text-[10px] font-bold bg-background/80 px-1 rounded">Bella Napoli</span>
+        <span className="text-[10px] font-bold bg-background/80 px-1 rounded">{config?.name || 'Pizzaria'}</span>
       </div>
 
-      {/* Destination: Customer */}
+      {/* Destination */}
       <div className="absolute top-1/2 right-8 -translate-y-1/2 flex flex-col items-center gap-1">
         <div className="bg-success text-success-foreground p-2 rounded-full shadow-lg z-10">
           <MapPin className="h-5 w-5" />
@@ -81,10 +83,9 @@ export default function DeliveryMap({ orderNumber, customerAddress, status }: De
         </span>
       </div>
 
-      {/* Animated Path & Driver Icon */}
+      {/* Animated Driver */}
       {status === 'delivering' && (
         <>
-          {/* Animated Route Line */}
           <svg className="absolute inset-0 w-full h-full text-primary" viewBox="0 0 400 200">
             <motion.path 
               d="M50,100 L350,100" 
@@ -98,7 +99,6 @@ export default function DeliveryMap({ orderNumber, customerAddress, status }: De
             />
           </svg>
 
-          {/* Moving Driver */}
           <motion.div 
             className="absolute top-1/2 -translate-y-1/2 z-20"
             initial={{ left: "15%" }}

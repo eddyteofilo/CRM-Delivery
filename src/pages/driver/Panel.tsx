@@ -17,7 +17,7 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function DriverPanel() {
-  const { orders, currentDriverId, drivers, driverLogout, updateOrderStatus, updateDriver } = useApp();
+  const { orders, currentDriverId, drivers, driverLogout, updateOrderStatus, updateDriver, isDemo } = useApp();
   const navigate = useNavigate();
 
   const driver = drivers.find(d => d.id === currentDriverId);
@@ -57,11 +57,13 @@ export default function DriverPanel() {
 
       const push = (pos: GeolocationPosition) => {
         setGpsActive(true);
-        supabase.from('orders').update({
-          driver_lat: pos.coords.latitude,
-          driver_lng: pos.coords.longitude,
-          driver_location_at: new Date().toISOString(),
-        }).eq('id', order.id).then();
+        if (!isDemo) {
+          supabase.from('orders').update({
+            driver_lat: pos.coords.latitude,
+            driver_lng: pos.coords.longitude,
+            driver_location_at: new Date().toISOString(),
+          }).eq('id', order.id).then();
+        }
       };
 
       const onError = () => setGpsActive(false);

@@ -19,6 +19,9 @@ import DriverLogin from "./pages/driver/Login";
 import DriverPanel from "./pages/driver/Panel";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
+import SalesCheckout from "./pages/venda/Checkout";
+import SalesSuccess from "./pages/venda/Success";
+import BusinessOnboarding from "./pages/venda/Onboarding";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +40,9 @@ function DriverRoute({ children }: { children: React.ReactNode }) {
 const AppRoutes = () => (
   <Routes>
     <Route path="/landing" element={<Landing />} />
+    <Route path="/venda/checkout" element={<SalesCheckout />} />
+    <Route path="/venda/sucesso" element={<SalesSuccess />} />
+    <Route path="/venda/onboarding" element={<BusinessOnboarding />} />
     <Route path="/" element={<Index />} />
     <Route path="/carrinho" element={<Cart />} />
     <Route path="/checkout" element={<Checkout />} />

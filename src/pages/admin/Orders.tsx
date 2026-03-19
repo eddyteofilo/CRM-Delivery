@@ -21,8 +21,9 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function AdminOrders() {
-  const { orders, updateOrderStatus, drivers, assignDriver } = useApp();
+  const { orders, updateOrderStatus, drivers, assignDriver, isDemo } = useApp();
   useNewOrderNotification(orders);
+
   const [filter, setFilter] = useState<string>('all');
 
   const filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
@@ -32,14 +33,15 @@ export default function AdminOrders() {
     const idx = statusFlow.indexOf(current);
     if (idx < statusFlow.length - 1) {
       updateOrderStatus(orderId, statusFlow[idx + 1]);
-      toast.success(`Status atualizado para: ${statusLabels[statusFlow[idx + 1]]}`);
+      const label = statusLabels[statusFlow[idx + 1]];
+      toast.success(isDemo ? `Simulação: Status "avançado" para ${label} (não salvo)` : `Status atualizado para: ${label}`);
     }
   };
 
   const handleAssignDriver = (orderId: string, driverId: string) => {
     assignDriver(orderId, driverId);
     const driver = drivers.find(d => d.id === driverId);
-    toast.success(`Entregador ${driver?.name} atribuído!`);
+    toast.success(isDemo ? `Simulação: Entregador ${driver?.name} "atribuído" (não salvo)` : `Entregador ${driver?.name} atribuído!`);
   };
 
   const statusStyles: Record<string, string> = {
@@ -144,6 +146,8 @@ export default function AdminOrders() {
                               orderNumber={order.number} 
                               customerAddress={order.address || ''} 
                               status={order.status} 
+                              driverLat={order.driverLat}
+                              driverLng={order.driverLng}
                             />
                           </div>
                         </DialogContent>

@@ -21,7 +21,6 @@ export const AsaasService = {
     }
 
     try {
-      // Passo 1: Buscar o "customer" pelo email no Asaas
       const customerRes = await fetch(`${ASAAS_API_URL}/customers?email=${encodeURIComponent(email)}`, {
         headers: { access_token: ASAAS_API_KEY }
       });
@@ -29,12 +28,8 @@ export const AsaasService = {
       const customerData = await customerRes.json();
       const customer = customerData.data?.[0];
 
-      if (!customer) {
-        // Se não existir cliente com esse email no ASAAS, consideramos que não tem plano
-        return false;
-      }
+      if (!customer) return false;
 
-      // Passo 2: Buscar assinaturas do cliente
       const subsRes = await fetch(`${ASAAS_API_URL}/subscriptions?customer=${customer.id}`, {
         headers: { access_token: ASAAS_API_KEY }
       });
@@ -42,14 +37,82 @@ export const AsaasService = {
       const subsData = await subsRes.json();
       const subscriptions = subsData.data as AsaasSubscription[];
 
-      // Passo 3: Tem assinatura "ACTIVE"?
-      const activeSub = subscriptions.find(s => s.status === 'ACTIVE');
-      return !!activeSub;
+      return subscriptions.some(s => s.status === 'ACTIVE');
 
     } catch (error) {
       console.error("Erro ao validar assinatura no Asaas:", error);
-      // Failsafe: Não deixa entrar em caso de erro da API a não ser que o app seja debug
       return false;
+    }
+  },
+
+  /**
+   * Cria ou recupera um cliente pelo Email/CPF
+   */
+  async createCustomer(data: { name: string, email: string, cpfCnpj: string }) {
+    if (!ASAAS_API_KEY) return { id: 'mock-cust-1' };
+
+    try {
+      // Tenta buscar primeiro para evitar duplicidade
+      const existRes = await fetch(`${ASAAS_API_URL}/customers?email=${encodeURIComponent(data.email)}`, {
+        headers: { access_token: ASAAS_API_KEY }
+      });
+      const existData = await existRes.json();
+      if (existData.data?.[0]) return existData.data[0];
+
+      // Se não existe, cria
+      const res = await fetch(`${ASAAS_API_URL}/customers`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          access_token: ASAAS_API_KEY 
+        },
+        body: JSON.stringify(data)
+      });
+      return await res.json();
+    } catch (error) {
+      console.error("Erro ao criar cliente no Asaas:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Cria uma assinatura mensal
+   */
+  async createSubscription(customerId: string, value: number) {
+    if (!ASAAS_API_KEY) return { invoiceUrl: '/venda/sucesso' };
+
+    try {
+      const res = await fetch(`${ASAAS_API_URL}/subscriptions`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          access_token: ASAAS_API_KEY 
+        },
+        body: JSON.stringify({
+          customer: customerId,
+          billingType: 'UNDEFINED', // Permite Cartão, Pix ou Boleto
+          value: value,
+          cycle: 'MONTHLY',
+          description: 'Assinatura Mensal - Pizza Prático (Setup Incluso)',
+          nextDueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0] // Vencimento amanhã para liberar logo
+        })
+      });
+      
+      const subData = await res.json();
+      
+      // Busca a primeira cobrança da assinatura para pegar o invoiceUrl
+      if (subData.id) {
+        const paymentsRes = await fetch(`${ASAAS_API_URL}/payments?subscription=${subData.id}`, {
+          headers: { access_token: ASAAS_API_KEY }
+        });
+        const paymentsData = await paymentsRes.json();
+        return paymentsData.data?.[0] || subData;
+      }
+      
+      return subData;
+    } catch (error) {
+      console.error("Erro ao criar assinatura no Asaas:", error);
+      throw error;
     }
   }
 };

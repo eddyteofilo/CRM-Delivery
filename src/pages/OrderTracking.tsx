@@ -12,7 +12,7 @@ import LiveTrackingMap from '@/components/common/LiveTrackingMap';
 
 export default function OrderTracking() {
   const { id } = useParams<{ id: string }>();
-  const { getOrder } = useApp();
+  const { getOrder, config } = useApp();
   const navigate = useNavigate();
   const [order, setOrder] = useState(getOrder(id || ''));
 

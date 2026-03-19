@@ -8,7 +8,7 @@ import { Trash2, Plus, UserCheck, UserX } from 'lucide-react';
 import { Driver } from '@/types';
 
 export default function AdminDrivers() {
-  const { drivers, addDriver, updateDriver, deleteDriver } = useApp();
+  const { drivers, addDriver, updateDriver, deleteDriver, isDemo } = useApp();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '', cpf: '', phone: '', vehicleType: 'moto' as 'moto' | 'carro',
@@ -33,7 +33,7 @@ export default function AdminDrivers() {
       createdAt: new Date().toISOString(),
     };
     addDriver(driver);
-    toast.success('Entregador cadastrado!');
+    toast.success(isDemo ? 'Simulação: Entregador "cadastrado" (não salvo no banco)' : 'Entregador cadastrado!');
     setForm({ name: '', cpf: '', phone: '', vehicleType: 'moto', plate: '', pix: '' });
     setShowForm(false);
   };
@@ -107,12 +107,12 @@ export default function AdminDrivers() {
                       message: `Tem certeza que deseja excluir o entregador "${driver.name}"?`,
                       onConfirm: () => {
                         deleteDriver(driver.id);
-                        toast.success('Entregador removido');
+                        toast.success(isDemo ? 'Simulação: Entregador "removido" (não salvo no banco)' : 'Entregador removido');
                       }
                     });
                   }}
-                  className="p-2 rounded-lg hover:bg-destructive/10 transition-colors">
-                  <Trash2 className="h-5 w-5 text-destructive" />
+                  className={`p-2 rounded-lg transition-colors ${isDemo ? 'opacity-50 cursor-not-allowed' : 'hover:bg-destructive/10 text-destructive'}`}>
+                  <Trash2 className="h-5 w-5" />
                 </button>
               </div>
             </div>

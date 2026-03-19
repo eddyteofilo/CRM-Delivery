@@ -72,6 +72,9 @@ export interface Order {
   distanceKm?: number;
   deliveryFee?: number;
   driverId?: string;
+  driverLat?: number;
+  driverLng?: number;
+  driverLocationAt?: string;
   createdAt: string;
   updatedAt: string;
 }

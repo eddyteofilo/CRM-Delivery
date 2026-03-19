@@ -67,12 +67,33 @@ export default function AdminLogin() {
           <Button type="submit" disabled={loading} className="w-full gradient-primary text-primary-foreground h-12 rounded-xl font-bold shadow-md">
             {loading ? 'Verificando Assinatura...' : 'Entrar no Painel'}
           </Button>
-          <p className="text-xs text-center text-muted-foreground mt-4">
-            Não tem uma conta? <a href="/landing" className="text-primary hover:underline">Conheça nossos planos</a>
-          </p>
-          <p className="text-[10px] text-center text-muted-foreground">Demo: demo@pizzapratico.com / qualquer senha</p>
+          <div className="pt-4 border-t space-y-3">
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-center">
+              <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Acesso para Teste (Demo)</p>
+              <div className="space-y-1 mb-3">
+                <p className="text-[11px] text-muted-foreground">Email: <span className="text-foreground font-mono">demo@pizzapratico.com</span></p>
+                <p className="text-[11px] text-muted-foreground">Senha: <span className="text-foreground font-mono">123456</span> (ou qualquer uma)</p>
+              </div>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => {
+                  setEmail('demo@pizzapratico.com');
+                  setPassword('123456');
+                }}
+                className="w-full h-10 rounded-lg text-xs font-bold border-primary/30 text-primary hover:bg-primary/10"
+              >
+                Preencher Dados Demo
+              </Button>
+            </div>
+            
+            <p className="text-xs text-center text-muted-foreground">
+              Não tem uma conta? <a href="/landing" className="text-primary hover:underline font-medium">Conheça nossos planos</a>
+            </p>
+          </div>
         </form>
       </motion.div>
     </div>
   );
 }
+

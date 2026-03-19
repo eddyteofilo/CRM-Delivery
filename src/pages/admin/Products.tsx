@@ -8,7 +8,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { toast } from 'sonner';
 
 export default function AdminProducts() {
-  const { pizzas, addPizza, updatePizza, deletePizza, config, updateConfig } = useApp();
+  const { pizzas, addPizza, updatePizza, deletePizza, config, updateConfig, isDemo } = useApp();
   const [editing, setEditing] = useState<Pizza | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [isNewCategoryModalOpen, setIsNewCategoryModalOpen] = useState(false);
@@ -43,10 +43,10 @@ export default function AdminProducts() {
     }
     if (isNew) {
       addPizza(editing);
-      toast.success('Produto adicionado!');
+      toast.success(isDemo ? 'Simulação: Produto "adicionado" (não salvo no banco)' : 'Produto adicionado!');
     } else {
       updatePizza(editing.id, editing);
-      toast.success('Produto atualizado!');
+      toast.success(isDemo ? 'Simulação: Produto "atualizado" (não salvo no banco)' : 'Produto atualizado!');
     }
     setEditing(null);
     setIsNew(false);
@@ -59,7 +59,7 @@ export default function AdminProducts() {
       message: `Tem certeza que deseja excluir o produto "${name}"? Essa ação não pode ser desfeita.`,
       onConfirm: () => {
         deletePizza(id);
-        toast.success('Produto removido!');
+        toast.success(isDemo ? 'Simulação: Produto "removido" (não salvo no banco)' : 'Produto removido!');
       }
     });
   };
@@ -243,10 +243,10 @@ export default function AdminProducts() {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button onClick={() => { setEditing(pizza); setIsNew(false); }} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors">
-                  <Pencil className="h-4 w-4" />
+                <button onClick={() => { setEditing(pizza); setIsNew(false); }} className="p-2 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors" title={isDemo ? 'Visualizar' : 'Editar'}>
+                  {isDemo ? <Settings className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
                 </button>
-                <button onClick={() => handleDelete(pizza.id, pizza.name)} className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors">
+                <button onClick={() => handleDelete(pizza.id, pizza.name)} className={`p-2 rounded-lg transition-colors ${isDemo ? 'opacity-50 cursor-not-allowed' : 'hover:bg-destructive/10 text-muted-foreground hover:text-destructive'}`}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

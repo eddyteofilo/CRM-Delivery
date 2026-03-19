@@ -12,9 +12,10 @@ const navItems = [
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  const { config, adminLogout } = useApp();
+  const { config, adminLogout, isDemo } = useApp();
   const location = useLocation();
   const navigate = useNavigate();
+
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
@@ -98,8 +99,23 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         )}
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
+          {isDemo && (
+            <div className="mb-6 bg-primary/10 border border-primary/30 rounded-xl p-4 flex items-center justify-between shadow-sm">
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🛡️</span>
+                <div>
+                  <p className="text-sm font-bold text-primary">Modo de Demonstração Ativo</p>
+                  <p className="text-xs text-muted-foreground">Você pode navegar e testar, mas as alterações <b>não serão salvas</b> no banco de dados.</p>
+                </div>
+              </div>
+              <Link to="/landing" className="hidden sm:block text-xs font-bold text-primary hover:underline">
+                Assinar Agora →
+              </Link>
+            </div>
+          )}
           {children}
         </main>
+
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { PizzeriaConfig } from '@/types';
 
 export default function AdminSettings() {
-  const { config, updateConfig } = useApp();
+  const { config, updateConfig, isDemo } = useApp();
   const [form, setForm] = useState<PizzeriaConfig>(config);
 
   useEffect(() => { setForm(config); }, [config]);
@@ -25,8 +25,9 @@ export default function AdminSettings() {
       : form.pizzeriaAddress;
 
     updateConfig({ ...form, pizzeriaAddress: fullAddress });
-    toast.success('Configurações salvas!');
+    toast.success(isDemo ? 'Simulação: Configurações "salvas" (não enviado ao banco)' : 'Configurações salvas!');
   };
+
 
   const inputClass = "w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground";
   const labelClass = "text-sm font-medium text-foreground block mb-1";
@@ -206,7 +207,7 @@ export default function AdminSettings() {
         </div>
 
         <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground rounded-xl h-12 font-bold">
-          Salvar Configurações
+          {isDemo ? 'Simular Salvamento' : 'Salvar Configurações'}
         </Button>
       </div>
     </AdminLayout>

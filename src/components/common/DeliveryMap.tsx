@@ -9,9 +9,17 @@ interface DeliveryMapProps {
   orderNumber: string;
   customerAddress: string;
   status: 'preparing' | 'delivering' | 'delivered';
+  driverLat?: number;
+  driverLng?: number;
 }
 
-export default function DeliveryMap({ orderNumber, customerAddress, status }: DeliveryMapProps) {
+export default function DeliveryMap({ 
+  orderNumber, 
+  customerAddress, 
+  status,
+  driverLat,
+  driverLng
+}: DeliveryMapProps) {
   const { config } = useApp();
   const originAddress = config?.pizzeriaAddress || '';
 
@@ -29,10 +37,15 @@ export default function DeliveryMap({ orderNumber, customerAddress, status }: De
     ? `https://www.google.com/maps/dir/${encodeURIComponent(origin)}/${encodeURIComponent(dest)}`
     : `https://www.google.com/maps/search/${encodeURIComponent(dest)}`;
 
-  // Embed: modo "place" mostra o destino centrado no mapa sem ambiguidade
-  const embedUrl = GOOGLE_MAPS_KEY && GOOGLE_MAPS_KEY.length > 10
-    ? `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_KEY}&q=${encodeURIComponent(dest)}&language=pt-BR&region=BR`
-    : null;
+  // Embed: modo "directions" se tivermos GPS do entregador, senão modo "place"
+  let embedUrl = null;
+  if (GOOGLE_MAPS_KEY && GOOGLE_MAPS_KEY.length > 10) {
+    if (driverLat && driverLng && status === 'delivering') {
+      embedUrl = `https://www.google.com/maps/embed/v1/directions?key=${GOOGLE_MAPS_KEY}&origin=${driverLat},${driverLng}&destination=${encodeURIComponent(dest)}&mode=driving&language=pt-BR&region=BR`;
+    } else {
+      embedUrl = `https://www.google.com/maps/embed/v1/place?key=${GOOGLE_MAPS_KEY}&q=${encodeURIComponent(dest)}&language=pt-BR&region=BR`;
+    }
+  }
 
   return (
     <div className="space-y-2">

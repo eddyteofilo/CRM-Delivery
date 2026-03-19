@@ -49,6 +49,7 @@ interface AppContextType {
   calculateDeliveryFee: (distanceKm: number) => number;
 
   isAdmin: boolean;
+  isDemo: boolean;
   adminLogin: (email: string, password: string) => Promise<boolean>;
   adminLogout: () => void;
 
@@ -75,6 +76,9 @@ const mapOrderFromDB = (db: any): Order => ({
   distanceKm: db.distance_km ? Number(db.distance_km) : undefined,
   deliveryFee: db.delivery_fee ? Number(db.delivery_fee) : undefined,
   driverId: db.driver_id || undefined,
+  driverLat: db.driver_lat ? Number(db.driver_lat) : undefined,
+  driverLng: db.driver_lng ? Number(db.driver_lng) : undefined,
+  driverLocationAt: db.driver_location_at || undefined,
   createdAt: db.created_at,
   updatedAt: db.updated_at,
 });
@@ -93,6 +97,9 @@ const mapOrderToDB = (order: Order) => ({
   distance_km: order.distanceKm,
   delivery_fee: order.deliveryFee,
   driver_id: order.driverId,
+  driver_lat: order.driverLat,
+  driver_lng: order.driverLng,
+  driver_location_at: order.driverLocationAt,
   created_at: order.createdAt,
   updated_at: order.updatedAt,
 });
@@ -165,6 +172,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   });
   
   const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('pizzeria_admin') === 'true');
+  const [isDemo, setIsDemo] = useState(() => localStorage.getItem('pizzeria_is_demo') === 'true');
   const [isDriver, setIsDriver] = useState(() => localStorage.getItem('pizzeria_driver') === 'true');
   const [currentDriverId, setCurrentDriverId] = useState<string | null>(() => localStorage.getItem('pizzeria_driver_id'));
 
@@ -245,38 +253,52 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const updateConfig = useCallback((partial: Partial<PizzeriaConfig>) => {
     setConfig(prev => ({ ...prev, ...partial }));
-    supabase.from('pizzeria_config').update(mapConfigToDB(partial)).eq('id', 1).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('pizzeria_config').update(mapConfigToDB(partial)).eq('id', 1).then();
+    }
+  }, [isDemo]);
 
   const addPizza = useCallback((pizza: Pizza) => {
     setPizzas(prev => [...prev, pizza]);
-    supabase.from('pizzas').insert(pizza).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('pizzas').insert(pizza).then();
+    }
+  }, [isDemo]);
 
   const updatePizza = useCallback((id: string, partial: Partial<Pizza>) => {
     setPizzas(prev => prev.map(p => p.id === id ? { ...p, ...partial } : p));
-    supabase.from('pizzas').update(partial).eq('id', id).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('pizzas').update(partial).eq('id', id).then();
+    }
+  }, [isDemo]);
 
   const deletePizza = useCallback((id: string) => {
     setPizzas(prev => prev.filter(p => p.id !== id));
-    supabase.from('pizzas').delete().eq('id', id).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('pizzas').delete().eq('id', id).then();
+    }
+  }, [isDemo]);
 
   const addDriver = useCallback((driver: Driver) => {
     setDrivers(prev => [...prev, driver]);
-    supabase.from('drivers').insert(mapDriverToDB(driver)).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('drivers').insert(mapDriverToDB(driver)).then();
+    }
+  }, [isDemo]);
 
   const updateDriver = useCallback((id: string, partial: Partial<Driver>) => {
     setDrivers(prev => prev.map(d => d.id === id ? { ...d, ...partial } : d));
-    supabase.from('drivers').update(mapDriverToDB(partial)).eq('id', id).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('drivers').update(mapDriverToDB(partial)).eq('id', id).then();
+    }
+  }, [isDemo]);
 
   const deleteDriver = useCallback((id: string) => {
     setDrivers(prev => prev.filter(d => d.id !== id));
-    supabase.from('drivers').delete().eq('id', id).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('drivers').delete().eq('id', id).then();
+    }
+  }, [isDemo]);
 
   // Cart Operations
   const addToCart = useCallback((item: CartItem) => setCart(prev => [...prev, item]), []);
@@ -350,20 +372,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCart([]);
     
     // Background Sync
-    supabase.from('orders').insert(mapOrderToDB(order)).then();
+    if (!isDemo) {
+      supabase.from('orders').insert(mapOrderToDB(order)).then();
+    }
     
     return order;
-  }, [cart, cartTotal, config.deliveryFee, orders.length, calculateDeliveryFee]);
+  }, [cart, cartTotal, config.deliveryFee, orders.length, calculateDeliveryFee, isDemo]);
 
   const updateOrderStatus = useCallback((id: string, status: OrderStatus) => {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status, updatedAt: new Date().toISOString() } : o));
-    supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', id).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('orders').update({ status, updated_at: new Date().toISOString() }).eq('id', id).then();
+    }
+  }, [isDemo]);
 
   const assignDriver = useCallback((orderId: string, driverId: string) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, driverId, updatedAt: new Date().toISOString() } : o));
-    supabase.from('orders').update({ driver_id: driverId, updated_at: new Date().toISOString() }).eq('id', orderId).then();
-  }, []);
+    if (!isDemo) {
+      supabase.from('orders').update({ driver_id: driverId, updated_at: new Date().toISOString() }).eq('id', orderId).then();
+    }
+  }, [isDemo]);
 
   const getOrder = useCallback((id: string) => {
     return orders.find(o => o.id === id);
@@ -381,7 +409,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     // Demo account override
     if (email.toLowerCase() === 'demo@pizzapratico.com') {
       setIsAdmin(true);
+      setIsDemo(true);
       localStorage.setItem('pizzeria_admin', 'true');
+      localStorage.setItem('pizzeria_is_demo', 'true');
       return true;
     }
 
@@ -389,7 +419,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const hasActivePlan = await AsaasService.verifyActiveSubscription(email);
     if (hasActivePlan) {
       setIsAdmin(true);
+      setIsDemo(false);
       localStorage.setItem('pizzeria_admin', 'true');
+      localStorage.setItem('pizzeria_is_demo', 'false');
       return true;
     }
 
@@ -398,7 +430,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const adminLogout = useCallback(() => {
     setIsAdmin(false);
+    setIsDemo(false);
     localStorage.removeItem('pizzeria_admin');
+    localStorage.removeItem('pizzeria_is_demo');
   }, []);
 
   const driverLogin = useCallback((phone: string) => {
@@ -428,7 +462,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       orders, createOrder, updateOrderStatus, assignDriver, getOrder, getOrderByNumber,
       drivers, addDriver, updateDriver, deleteDriver,
       calculateDeliveryFee,
-      isAdmin, adminLogin, adminLogout,
+      isAdmin, isDemo, adminLogin, adminLogout,
       isDriver, currentDriverId, driverLogin, driverLogout,
     }}>
       {children}

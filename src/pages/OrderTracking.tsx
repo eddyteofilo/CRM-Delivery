@@ -7,7 +7,8 @@ import StoreHeader from '@/components/store/StoreHeader';
 import OrderTimeline from '@/components/store/OrderTimeline';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import DeliveryMap from '@/components/common/DeliveryMap';
+import LiveTrackingMap from '@/components/common/LiveTrackingMap';
+
 
 export default function OrderTracking() {
   const { id } = useParams<{ id: string }>();
@@ -87,12 +88,23 @@ export default function OrderTracking() {
             <h2 className="font-semibold text-foreground mb-4">Acompanhamento</h2>
             <OrderTimeline currentStatus={order.status} />
 
-            {(order.status === 'delivering' || order.status === 'delivered') && (
+            {order.deliveryType === 'delivery' && (order.status === 'preparing' || order.status === 'delivering' || order.status === 'delivered') && order.address && (
               <div className="mt-6 pt-6 border-t">
-                <DeliveryMap 
-                  orderNumber={order.number} 
-                  customerAddress={order.address || ''} 
-                  status={order.status} 
+                <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
+                  🗺️ Rastreio em Tempo Real
+                  {order.status === 'delivering' && (
+                    <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold animate-pulse">AO VIVO</span>
+                  )}
+                </h3>
+                <LiveTrackingMap
+                  orderId={order.id}
+                  orderNumber={order.number}
+                  customerAddress={order.address}
+                  pizzeriaAddress={config.pizzeriaAddress || ''}
+                  distanceKm={order.distanceKm}
+                  status={order.status as 'preparing' | 'delivering' | 'delivered'}
+                  createdAt={order.createdAt}
+                  avgPrepTime={config.avgPrepTime || 30}
                 />
               </div>
             )}

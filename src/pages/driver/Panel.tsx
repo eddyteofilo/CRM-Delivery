@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, MapPin, Phone, Clock, CheckCircle, Truck, Map as MapIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { LogOut, MapPin, Phone, Clock, CheckCircle, Truck, Map as MapIcon, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Order } from '@/types';
+import { supabase } from '@/lib/supabase';
 import DeliveryMap from '@/components/common/DeliveryMap';
+
 
 const statusLabels: Record<string, string> = {
   received: 'Recebido',
@@ -46,16 +48,54 @@ export default function DriverPanel() {
 
   const DeliveryCard = ({ order, showAction }: { order: Order; showAction?: boolean }) => {
     const [showMap, setShowMap] = useState(false);
+    const [gpsActive, setGpsActive] = useState(false);
+    const watchRef = useRef<number | null>(null);
+
+    // Broadcast GPS location to Supabase while delivering
+    useEffect(() => {
+      if (order.status !== 'delivering' || !navigator.geolocation) return;
+
+      const push = (pos: GeolocationPosition) => {
+        setGpsActive(true);
+        supabase.from('orders').update({
+          driver_lat: pos.coords.latitude,
+          driver_lng: pos.coords.longitude,
+          driver_location_at: new Date().toISOString(),
+        }).eq('id', order.id).then();
+      };
+
+      const onError = () => setGpsActive(false);
+
+      watchRef.current = navigator.geolocation.watchPosition(push, onError, {
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 15000,
+      });
+
+      return () => {
+        if (watchRef.current !== null) {
+          navigator.geolocation.clearWatch(watchRef.current);
+        }
+      };
+    }, [order.status, order.id]);
 
     return (
       <div className="bg-card rounded-xl border p-4 shadow-card space-y-2">
         <div className="flex items-center justify-between">
           <span className="font-bold text-foreground">{order.number}</span>
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-            order.status === 'delivering' ? 'bg-primary/10 text-primary' :
-            order.status === 'delivered' ? 'bg-success/10 text-success' :
-            'bg-muted text-muted-foreground'
-          }`}>{statusLabels[order.status]}</span>
+          <div className="flex items-center gap-2">
+            {gpsActive && order.status === 'delivering' && (
+              <span className="flex items-center gap-1 text-[10px] font-bold text-green-600 bg-green-50 dark:bg-green-950 px-2 py-0.5 rounded-full border border-green-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                GPS Ativo
+              </span>
+            )}
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+              order.status === 'delivering' ? 'bg-primary/10 text-primary' :
+              order.status === 'delivered' ? 'bg-success/10 text-success' :
+              'bg-muted text-muted-foreground'
+            }`}>{statusLabels[order.status]}</span>
+          </div>
         </div>
         <p className="text-sm text-foreground font-medium">{order.customerName}</p>
         <div className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -70,25 +110,38 @@ export default function DriverPanel() {
           <p className="text-sm text-muted-foreground">📍 {order.distanceKm.toFixed(1).replace('.', ',')} km</p>
         )}
 
+        {/* Navigate button */}
+        {order.status === 'delivering' && order.address && (
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(order.address + ', Brasil')}&travelmode=driving`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+          >
+            <Navigation className="h-4 w-4" />
+            Navegar até o cliente
+          </a>
+        )}
+
         {/* Expandable Map */}
         {order.status === 'delivering' && (
           <div className="pt-2 border-t mt-2">
-            <button 
+            <button
               onClick={() => setShowMap(!showMap)}
               className="flex items-center justify-between w-full text-xs font-semibold text-primary hover:opacity-80 transition-opacity"
             >
               <span className="flex items-center gap-1.5">
-                <MapIcon className="h-3 w-3" /> {showMap ? 'Ocultar Mapa' : 'Ver Mapa de Rastreio'}
+                <MapIcon className="h-3 w-3" /> {showMap ? 'Ocultar Mapa' : 'Ver Mapa'}
               </span>
               {showMap ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </button>
-            
+
             {showMap && (
               <div className="mt-3 rounded-lg overflow-hidden border">
-                <DeliveryMap 
-                  orderNumber={order.number} 
-                  customerAddress={order.address || ''} 
-                  status={order.status} 
+                <DeliveryMap
+                  orderNumber={order.number}
+                  customerAddress={order.address || ''}
+                  status={order.status}
                 />
               </div>
             )}
@@ -106,6 +159,7 @@ export default function DriverPanel() {
       </div>
     );
   };
+
 
   return (
     <div className="min-h-screen bg-background">

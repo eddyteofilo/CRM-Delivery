@@ -61,7 +61,14 @@ export interface Order {
   paymentMethod: PaymentMethod;
   customerName: string;
   customerPhone: string;
-  address?: string;
+  customerWhatsapp?: string;
+  address?: string;           // endereço completo montado automaticamente
+  addressStreet?: string;
+  addressNumber?: string;
+  addressComplement?: string;
+  addressNeighborhood?: string;
+  addressCity?: string;
+  addressCep?: string;
   distanceKm?: number;
   deliveryFee?: number;
   driverId?: string;
@@ -78,12 +85,18 @@ export interface DeliveryFeeConfig {
 export interface PizzeriaConfig {
   name: string;
   logo: string;
+  phone?: string;
   openingHours: string;
   closingHours: string;
   deliveryFee: number;
   avgPrepTime: number;
   isOpen: boolean;
   deliveryFeeConfig: DeliveryFeeConfig;
-  pizzeriaAddress: string; // for distance calculation
+  pizzeriaAddress: string; // endereço completo montado (para Maps)
+  addressStreet?: string;
+  addressNumber?: string;
+  addressNeighborhood?: string;
+  addressCity?: string;
+  addressCep?: string;
   categories?: string[];
 }

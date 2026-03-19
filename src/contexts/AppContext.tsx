@@ -24,7 +24,14 @@ interface AppContextType {
   createOrder: (data: {
     customerName: string;
     customerPhone: string;
+    customerWhatsapp?: string;
     address?: string;
+    addressStreet?: string;
+    addressNumber?: string;
+    addressComplement?: string;
+    addressNeighborhood?: string;
+    addressCity?: string;
+    addressCep?: string;
     deliveryType: DeliveryType;
     paymentMethod: PaymentMethod;
     distanceKm?: number;
@@ -294,7 +301,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const createOrder = useCallback((data: {
     customerName: string;
     customerPhone: string;
+    customerWhatsapp?: string;
     address?: string;
+    addressStreet?: string;
+    addressNumber?: string;
+    addressComplement?: string;
+    addressNeighborhood?: string;
+    addressCity?: string;
+    addressCep?: string;
     deliveryType: DeliveryType;
     paymentMethod: PaymentMethod;
     distanceKm?: number;
@@ -317,7 +331,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       paymentMethod: data.paymentMethod,
       customerName: data.customerName,
       customerPhone: data.customerPhone,
+      customerWhatsapp: data.customerWhatsapp,
       address: data.address,
+      addressStreet: data.addressStreet,
+      addressNumber: data.addressNumber,
+      addressComplement: data.addressComplement,
+      addressNeighborhood: data.addressNeighborhood,
+      addressCity: data.addressCity,
+      addressCep: data.addressCep,
       distanceKm: data.distanceKm,
       deliveryFee,
       createdAt: new Date().toISOString(),

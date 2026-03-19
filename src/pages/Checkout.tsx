@@ -13,11 +13,22 @@ export default function Checkout() {
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [customerWhatsapp, setCustomerWhatsapp] = useState('');
+  // Endereço estruturado do cliente
+  const [addressStreet, setAddressStreet] = useState('');
+  const [addressNumber, setAddressNumber] = useState('');
+  const [addressComplement, setAddressComplement] = useState('');
+  const [addressNeighborhood, setAddressNeighborhood] = useState('');
+  const [addressCity, setAddressCity] = useState('');
+  const [addressCep, setAddressCep] = useState('');
   const [deliveryType, setDeliveryType] = useState<DeliveryType>('delivery');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('pix');
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
   const [calculatingDistance, setCalculatingDistance] = useState(false);
+
+  // Monta endereço completo a partir dos campos estruturados
+  const fullAddress = [addressStreet, addressNumber, addressComplement, addressNeighborhood, addressCity, addressCep]
+    .filter(Boolean).join(', ');
 
   if (cart.length === 0) {
     navigate('/carrinho');
@@ -26,14 +37,13 @@ export default function Checkout() {
 
   // Simulate distance calculation (MVP - replace with Google Maps API)
   const simulateDistance = () => {
-    if (!address.trim()) {
-      toast.error('Informe o endereço para calcular a distância');
+    if (!addressStreet.trim() || !addressCity.trim()) {
+      toast.error('Informe pelo menos a rua e a cidade para calcular a distância');
       return;
     }
     setCalculatingDistance(true);
-    // Simulated: generate random distance 1-15km based on address length seed
     setTimeout(() => {
-      const seed = address.length % 10;
+      const seed = fullAddress.length % 10;
       const km = Math.round((2 + seed * 1.3) * 10) / 10;
       setDistanceKm(km);
       setCalculatingDistance(false);
@@ -57,20 +67,28 @@ export default function Checkout() {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
-    if (deliveryType === 'delivery' && !address.trim()) {
+    if (deliveryType === 'delivery' && !addressStreet.trim()) {
       toast.error('Informe o endereço de entrega');
       return;
     }
     const order = createOrder({
       customerName,
       customerPhone,
-      address: deliveryType === 'delivery' ? address : undefined,
+      customerWhatsapp: customerWhatsapp || customerPhone,
+      address: deliveryType === 'delivery' ? fullAddress : undefined,
+      addressStreet: deliveryType === 'delivery' ? addressStreet : undefined,
+      addressNumber: deliveryType === 'delivery' ? addressNumber : undefined,
+      addressComplement: deliveryType === 'delivery' ? addressComplement : undefined,
+      addressNeighborhood: deliveryType === 'delivery' ? addressNeighborhood : undefined,
+      addressCity: deliveryType === 'delivery' ? addressCity : undefined,
+      addressCep: deliveryType === 'delivery' ? addressCep : undefined,
       deliveryType,
       paymentMethod,
       distanceKm: distanceKm ?? undefined,
     });
     navigate(`/pedido/${order.id}`);
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,7 +105,7 @@ export default function Checkout() {
           <h2 className="font-semibold text-foreground">Seus Dados</h2>
           <input
             type="text"
-            placeholder="Seu nome *"
+            placeholder="Seu nome completo *"
             value={customerName}
             onChange={e => setCustomerName(e.target.value)}
             className="w-full px-4 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground"
@@ -95,11 +113,18 @@ export default function Checkout() {
           />
           <input
             type="tel"
-            placeholder="WhatsApp *"
+            placeholder="Telefone / Celular *"
             value={customerPhone}
             onChange={e => setCustomerPhone(e.target.value)}
             className="w-full px-4 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground"
             required
+          />
+          <input
+            type="tel"
+            placeholder="WhatsApp (se diferente do telefone)"
+            value={customerWhatsapp}
+            onChange={e => setCustomerWhatsapp(e.target.value)}
+            className="w-full px-4 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground"
           />
         </div>
 
@@ -130,14 +155,58 @@ export default function Checkout() {
           </div>
           {deliveryType === 'delivery' && (
             <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Endereço completo *"
-                value={address}
-                onChange={e => { setAddress(e.target.value); setDistanceKm(null); }}
-                className="w-full px-4 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground"
-                required
-              />
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Endereço de Entrega</p>
+              <div className="grid grid-cols-3 gap-2">
+                <input
+                  type="text"
+                  placeholder="CEP *"
+                  value={addressCep}
+                  onChange={e => { setAddressCep(e.target.value); setDistanceKm(null); }}
+                  className="col-span-1 px-3 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="Rua / Logradouro *"
+                  value={addressStreet}
+                  onChange={e => { setAddressStreet(e.target.value); setDistanceKm(null); }}
+                  className="col-span-2 px-3 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground text-sm"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Número *"
+                  value={addressNumber}
+                  onChange={e => { setAddressNumber(e.target.value); setDistanceKm(null); }}
+                  className="px-3 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground text-sm"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Complemento (apto, bloco…)"
+                  value={addressComplement}
+                  onChange={e => setAddressComplement(e.target.value)}
+                  className="px-3 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground text-sm"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="Bairro"
+                  value={addressNeighborhood}
+                  onChange={e => { setAddressNeighborhood(e.target.value); setDistanceKm(null); }}
+                  className="px-3 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground text-sm"
+                />
+                <input
+                  type="text"
+                  placeholder="Cidade *"
+                  value={addressCity}
+                  onChange={e => { setAddressCity(e.target.value); setDistanceKm(null); }}
+                  className="px-3 py-3 rounded-xl bg-background border focus:outline-none focus:ring-2 focus:ring-primary/30 text-foreground placeholder:text-muted-foreground text-sm"
+                  required
+                />
+              </div>
               <button
                 type="button"
                 onClick={simulateDistance}
@@ -162,6 +231,7 @@ export default function Checkout() {
             </div>
           )}
         </div>
+
 
         {/* Payment */}
         <div className="bg-card rounded-xl border p-4 space-y-3 shadow-card">

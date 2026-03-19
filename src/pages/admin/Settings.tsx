@@ -12,114 +12,180 @@ export default function AdminSettings() {
   useEffect(() => { setForm(config); }, [config]);
 
   const handleSave = () => {
-    updateConfig(form);
+    // Monta o endereço completo automaticamente para uso no Google Maps
+    const parts = [
+      form.addressStreet,
+      form.addressNumber,
+      form.addressNeighborhood,
+      form.addressCity,
+    ].filter(Boolean);
+    
+    const fullAddress = parts.length > 0 
+      ? `${parts.join(', ')}, Brasil`
+      : form.pizzeriaAddress;
+
+    updateConfig({ ...form, pizzeriaAddress: fullAddress });
     toast.success('Configurações salvas!');
   };
 
+  const inputClass = "w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 placeholder:text-muted-foreground";
+  const labelClass = "text-sm font-medium text-foreground block mb-1";
+
   return (
     <AdminLayout>
-      <div className="space-y-6 max-w-lg">
+      <div className="space-y-6 max-w-2xl">
         <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
 
+        {/* Dados da Pizzaria */}
         <div className="bg-card rounded-xl border p-6 shadow-card space-y-4">
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1">Nome da Pizzaria</label>
-            <input
-              value={form.name}
-              onChange={e => setForm({ ...form, name: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1">Logo (emoji)</label>
-            <input
-              value={form.logo}
-              onChange={e => setForm({ ...form, logo: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          <h2 className="font-semibold text-foreground text-lg">🍕 Dados da Pizzaria</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Abertura</label>
+              <label className={labelClass}>Nome da Pizzaria</label>
+              <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Logo (emoji)</label>
+              <input value={form.logo} onChange={e => setForm({ ...form, logo: e.target.value })} className={inputClass} />
+            </div>
+            <div>
+              <label className={labelClass}>Telefone / WhatsApp</label>
               <input
-                type="time"
-                value={form.openingHours}
-                onChange={e => setForm({ ...form, openingHours: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                type="tel"
+                placeholder="(11) 99999-9999"
+                value={form.phone || ''}
+                onChange={e => setForm({ ...form, phone: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={labelClass}>Abertura</label>
+                <input type="time" value={form.openingHours} onChange={e => setForm({ ...form, openingHours: e.target.value })} className={inputClass} />
+              </div>
+              <div>
+                <label className={labelClass}>Fechamento</label>
+                <input type="time" value={form.closingHours} onChange={e => setForm({ ...form, closingHours: e.target.value })} className={inputClass} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Endereço da Pizzaria */}
+        <div className="bg-card rounded-xl border p-6 shadow-card space-y-4">
+          <h2 className="font-semibold text-foreground text-lg">
+            📍 Endereço da Pizzaria{' '}
+            <span className="text-xs text-primary font-normal">(usado no Google Maps para calcular rotas)</span>
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <label className={labelClass}>Rua / Logradouro</label>
+              <input
+                placeholder="Ex: Rua das Flores"
+                value={form.addressStreet || ''}
+                onChange={e => setForm({ ...form, addressStreet: e.target.value })}
+                className={inputClass}
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-foreground block mb-1">Fechamento</label>
+              <label className={labelClass}>Número</label>
               <input
-                type="time"
-                value={form.closingHours}
-                onChange={e => setForm({ ...form, closingHours: e.target.value })}
-                className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder="Ex: 1234"
+                value={form.addressNumber || ''}
+                onChange={e => setForm({ ...form, addressNumber: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>CEP</label>
+              <input
+                placeholder="Ex: 01310-100"
+                value={form.addressCep || ''}
+                onChange={e => setForm({ ...form, addressCep: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Bairro</label>
+              <input
+                placeholder="Ex: Centro"
+                value={form.addressNeighborhood || ''}
+                onChange={e => setForm({ ...form, addressNeighborhood: e.target.value })}
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>Cidade</label>
+              <input
+                placeholder="Ex: São Paulo"
+                value={form.addressCity || ''}
+                onChange={e => setForm({ ...form, addressCity: e.target.value })}
+                className={inputClass}
               />
             </div>
           </div>
+          {(form.addressStreet || form.addressCity) && (
+            <p className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
+              🗺️ Rota irá partir de:{' '}
+              <span className="text-foreground font-medium">
+                {[form.addressStreet, form.addressNumber, form.addressNeighborhood, form.addressCity].filter(Boolean).join(', ')}
+              </span>
+            </p>
+          )}
+        </div>
+
+        {/* Tempo e Entrega */}
+        <div className="bg-card rounded-xl border p-6 shadow-card space-y-4">
+          <h2 className="font-semibold text-foreground text-lg">⏱️ Tempo e Entrega</h2>
           <div>
-            <label className="text-sm font-medium text-foreground block mb-1">Endereço da Pizzaria</label>
-            <input
-              value={form.pizzeriaAddress}
-              onChange={e => setForm({ ...form, pizzeriaAddress: e.target.value })}
-              className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
-              placeholder="Endereço para calcular rotas de entrega"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-foreground block mb-1">Tempo Médio de Preparo (min)</label>
+            <label className={labelClass}>Tempo Médio de Preparo (min)</label>
             <input
               type="number"
               value={form.avgPrepTime}
               onChange={e => setForm({ ...form, avgPrepTime: parseInt(e.target.value) || 0 })}
-              className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className={inputClass}
             />
           </div>
 
-          {/* Delivery Fee Config */}
-          <div className="border-t pt-4 mt-4">
-            <h3 className="font-semibold text-foreground mb-3">💰 Configuração de Taxa de Entrega</h3>
+          <div className="border-t pt-4 mt-2">
+            <h3 className="font-semibold text-foreground mb-3">💰 Taxa de Entrega por Distância</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Taxa base (R$)</label>
+                <label className={labelClass}>Taxa base (R$)</label>
                 <input
-                  type="number"
-                  step="0.50"
+                  type="number" step="0.50"
                   value={form.deliveryFeeConfig.baseDeliveryFee}
                   onChange={e => setForm({
                     ...form,
                     deliveryFee: parseFloat(e.target.value) || 0,
                     deliveryFeeConfig: { ...form.deliveryFeeConfig, baseDeliveryFee: parseFloat(e.target.value) || 0 }
                   })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-foreground block mb-1">Km inclusos na base</label>
+                <label className={labelClass}>Km inclusos na base</label>
                 <input
-                  type="number"
-                  step="0.5"
+                  type="number" step="0.5"
                   value={form.deliveryFeeConfig.baseFeeKm}
                   onChange={e => setForm({
                     ...form,
                     deliveryFeeConfig: { ...form.deliveryFeeConfig, baseFeeKm: parseFloat(e.target.value) || 0 }
                   })}
-                  className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className={inputClass}
                 />
               </div>
             </div>
             <div className="mt-3">
-              <label className="text-sm font-medium text-foreground block mb-1">R$ por km extra (acima de {form.deliveryFeeConfig.baseFeeKm} km)</label>
+              <label className={labelClass}>R$ por km extra (acima de {form.deliveryFeeConfig.baseFeeKm} km)</label>
               <input
-                type="number"
-                step="0.10"
+                type="number" step="0.10"
                 value={form.deliveryFeeConfig.extraKmRate}
                 onChange={e => setForm({
                   ...form,
                   deliveryFeeConfig: { ...form.deliveryFeeConfig, extraKmRate: parseFloat(e.target.value) || 0 }
                 })}
-                className="w-full px-4 py-3 rounded-xl bg-background border text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+                className={inputClass}
               />
             </div>
             <p className="text-xs text-muted-foreground mt-2">
@@ -137,11 +203,11 @@ export default function AdminSettings() {
             />
             <span className="text-sm font-medium text-foreground">Pizzaria aberta para pedidos</span>
           </label>
-
-          <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground rounded-xl h-12 font-bold">
-            Salvar Configurações
-          </Button>
         </div>
+
+        <Button onClick={handleSave} className="w-full gradient-primary text-primary-foreground rounded-xl h-12 font-bold">
+          Salvar Configurações
+        </Button>
       </div>
     </AdminLayout>
   );
